@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "purpose": "The only libraries alkemyo's iPhone, iPad and Apple TV media frameworks (AlkemyoFFmpeg, AlkemyoMPV) may contain or link. apple/apple_player.py checks every framework against it before writing it.",
+  "frameworks": {
+    "AlkemyoFFmpeg": {
+      "identifier": "app.alkemyo.player.ffmpeg",
+      "licence": "LGPL version 2.1 or later",
+      "libraries": [
+        "avcodec",
+        "avdevice",
+        "avfilter",
+        "avformat",
+        "avutil",
+        "swresample",
+        "swscale"
+      ],
+      "links": []
+    },
+    "AlkemyoMPV": {
+      "identifier": "app.alkemyo.player.mpv",
+      "licence": "LGPL version 2.1 or later",
+      "links": [
+        "AlkemyoFFmpeg"
+      ]
+    }
+  },
+  "ffmpeg_configure": {
+    "required": [
+      "--disable-gpl",
+      "--disable-nonfree",
+      "--disable-autodetect",
+      "--enable-securetransport",
+      "--enable-videotoolbox",
+      "--enable-audiotoolbox"
+    ],
+    "forbidden": [
+      "--enable-version3",
+      "--enable-gpl",
+      "--enable-nonfree",
+      "--enable-gnutls",
+      "--enable-gmp",
+      "--enable-openssl",
+      "--enable-libsmbclient",
+      "--enable-libdav1d",
+      "--enable-libuavs3d"
+    ]
+  },
+  "mpv_options": {
+    "required": [
+      "-Dgpl=false",
+      "-Dauto_features=disabled",
+      "-Dlua=disabled",
+      "-Db_lundef=true"
+    ]
+  },
+  "mpv_archives": [
+    {
+      "name": "Libass",
+      "pkg": "libass",
+      "version": "0.17.5",
+      "headers": "",
+      "link": [
+        "Libass",
+        "Libfreetype",
+        "Libharfbuzz",
+        "Libfribidi",
+        "Libunibreak"
+      ],
+      "system": [
+        "-lc++",
+        "-lz",
+        "-lbz2",
+        "-liconv",
+        "-framework",
+        "CoreText",
+        "-framework",
+        "CoreGraphics",
+        "-framework",
+        "CoreFoundation"
+      ]
+    },
+    {
+      "name": "Libfreetype",
+      "headers": null
+    },
+    {
+      "name": "Libharfbuzz",
+      "headers": null
+    },
+    {
+      "name": "Libfribidi",
+      "headers": null
+    },
+    {
+      "name": "Libunibreak",
+      "headers": null
+    },
+    {
+      "name": "Libplacebo",
+      "pkg": "libplacebo",
+      "version": "7.360.1",
+      "headers": "libplacebo",
+      "link": [
+        "Libplacebo",
+        "lcms2",
+        "Libdovi"
+      ],
+      "system": [
+        "-lc++"
+      ]
+    },
+    {
+      "name": "lcms2",
+      "pkg": "lcms2",
+      "version": "2.17.0",
+      "headers": "",
+      "link": [
+        "lcms2"
+      ],
+      "system": []
+    },
+    {
+      "name": "Libdovi",
+      "headers": null
+    },
+    {
+      "name": "Libuchardet",
+      "pkg": "uchardet",
+      "version": "0.0.8",
+      "headers": "",
+      "link": [
+        "Libuchardet"
+      ],
+      "system": [
+        "-lc++"
+      ]
+    },
+    {
+      "name": "Libbluray",
+      "pkg": "libbluray",
+      "version": "1.4.0",
+      "headers": "libbluray",
+      "link": [
+        "Libbluray"
+      ],
+      "system": [
+        "-lxml2"
+      ]
+    }
+  ],
+  "excluded_archives": {
+    "Libmpv": "upstream binary; mpv is compiled from source instead, so every shipped LGPL binary has exact source",
+    "Libavcodec": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libavdevice": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libavformat": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libavfilter": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libavutil": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libswresample": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libswscale": "FFmpeg is compiled from source into AlkemyoFFmpeg",
+    "Libcrypto": "TLS is Apple's (SecureTransport)",
+    "Libssl": "TLS is Apple's (SecureTransport)",
+    "gnutls": "TLS is Apple's (SecureTransport); gnutls forces FFmpeg to LGPL 3",
+    "gmp": "only needed by gnutls; LGPL 3",
+    "nettle": "only needed by gnutls",
+    "hogweed": "only needed by gnutls",
+    "Libdav1d": "not enabled in the Apple FFmpeg (AV1 uses FFmpeg's own decoder or VideoToolbox)",
+    "Libuavs3d": "not enabled in the Apple FFmpeg",
+    "MoltenVK": "mpv is built without Vulkan on iPad and Apple TV",
+    "Libshaderc_combined": "mpv is built without Vulkan on iPad and Apple TV",
+    "Libluajit": "mpv is built with -Dlua=disabled"
+  },
+  "system_link_prefixes": [
+    "/System/Library/Frameworks/",
+    "/usr/lib/libSystem",
+    "/usr/lib/libc++",
+    "/usr/lib/libz.",
+    "/usr/lib/libbz2",
+    "/usr/lib/libiconv",
+    "/usr/lib/libxml2",
+    "/usr/lib/libobjc",
+    "/usr/lib/libresolv",
+    "/usr/lib/swift/"
+  ],
+  "forbidden_symbol_prefixes": [
+    "_gnutls_",
+    "___gmp",
+    "_nettle_",
+    "_SSL_",
+    "_OPENSSL_",
+    "_EVP_",
+    "_luaL_",
+    "_vkCreateInstance",
+    "_shaderc_",
+    "_dav1d_",
+    "_uavs3d_"
+  ],
+  "mpv_overlay": [
+    "apple/patches/libmpv_alkemyo.c",
+    "apple/patches/alkemyo_native_buffer.h"
+  ]
+}

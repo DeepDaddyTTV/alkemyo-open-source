@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "purpose": "Pinned sources for the LGPL player runtime the Linux .deb ships in /opt/alkemyo/lib (licensing L04). Read by scripts/build-linux-player.py. Each archive is checked by sha256 before it is unpacked; the mirror is the Ubuntu archive's copy of the same upstream release.",
+  "sources": {
+    "ffmpeg": {
+      "version": "8.1.2",
+      "licence": "LGPL version 2.1 or later",
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz",
+      "mirror": "http://archive.ubuntu.com/ubuntu/pool/universe/f/ffmpeg/ffmpeg_8.1.2.orig.tar.xz",
+      "sha256": "464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c",
+      "notices": ["COPYING.LGPLv2.1", "LICENSE.md", "CREDITS"]
+    },
+    "mpv": {
+      "version": "0.41.0",
+      "licence": "LGPL version 2.1 or later (built with -Dgpl=false)",
+      "url": "https://github.com/mpv-player/mpv/tree/v0.41.0",
+      "mirror": "http://archive.ubuntu.com/ubuntu/pool/universe/m/mpv/mpv_0.41.0.orig.tar.gz",
+      "sha256": "4f900c91f9fdb36bc6442968775910aa8c0f67dade72a3d51a4b0c2b39af02da",
+      "gitTree": "d0cc1c088a9c72f52d6c232438215c50ceeb11a3",
+      "gitCommit": "41f6a645068483470267271e1d09966ca3b9f413",
+      "provenance": "GitHub codeload tarball of tag v0.41.0 (tag object 2c219aa822df); git write-tree of the unpacked archive is the tree of the commit the Apple pin uses",
+      "notices": ["LICENSE.LGPL", "Copyright"]
+    },
+    "libplacebo": {
+      "version": "7.360.1",
+      "licence": "LGPL version 2.1 or later",
+      "url": "https://code.videolan.org/videolan/libplacebo/-/tags/v7.360.1",
+      "mirror": "http://archive.ubuntu.com/ubuntu/pool/universe/libp/libplacebo/libplacebo_7.360.1.orig.tar.gz",
+      "sha256": "3e697b2831fe75acbe096ac85114c3b425c25bbbac427b03a923ac0f4db27e79",
+      "notices": ["LICENSE"]
+    },
+    "dav1d": {
+      "version": "1.5.3",
+      "licence": "BSD-2-Clause",
+      "url": "https://code.videolan.org/videolan/dav1d/-/tags/1.5.3",
+      "mirror": "http://archive.ubuntu.com/ubuntu/pool/universe/d/dav1d/dav1d_1.5.3.orig.tar.xz",
+      "sha256": "732010aa5ef461fa93355ed2c6c5fedb48ddc4b74e697eaabe8907eaeb943011",
+      "notices": ["COPYING"]
+    }
+  },
+  "python": ["meson==1.9.1", "ninja==1.13.0", "glad2==2.0.8", "Jinja2==3.1.6", "MarkupSafe==3.0.3"],
+  "ffmpeg_configure": {
+    "required": ["--disable-gpl", "--disable-nonfree", "--disable-autodetect", "--enable-shared", "--disable-static", "--disable-programs", "--disable-doc", "--enable-gnutls", "--enable-libdav1d", "--enable-zlib", "--enable-iconv", "--enable-vaapi", "--enable-libdrm"],
+    "forbidden": ["--enable-version3", "--enable-gpl", "--enable-nonfree", "--enable-gmp", "--enable-openssl", "--enable-libsmbclient", "--enable-libx264", "--enable-libx265", "--enable-postproc", "--enable-mbedtls"]
+  },
+  "mpv_options": {
+    "required": ["-Dlibmpv=true", "-Dcplayer=false", "-Dgpl=false", "-Dbuildtype=release", "-Db_lundef=true", "-Dauto_features=disabled", "-Dlua=disabled",
+                 "-Diconv=enabled", "-Duchardet=enabled", "-Dlibbluray=enabled", "-Dlcms2=enabled", "-Dzlib=enabled", "-Dlibavdevice=enabled",
+                 "-Dgl=enabled", "-Dplain-gl=enabled", "-Degl=enabled", "-Dx11=enabled", "-Dvaapi=enabled", "-Dvaapi-x11=enabled", "-Dvaapi-drm=enabled", "-Ddrm=enabled",
+                 "-Dpulse=enabled", "-Dpipewire=enabled", "-Dalsa=enabled"]
+  },
+  "libplacebo_options": ["-Dvulkan=disabled", "-Dopengl=enabled", "-Dd3d11=disabled", "-Dlcms=enabled", "-Dxxhash=disabled", "-Dshaderc=disabled", "-Dglslang=disabled", "-Ddovi=disabled", "-Dlibdovi=disabled", "-Ddemos=false", "-Dtests=false", "-Dunwind=disabled"],
+  "bundled": ["libavcodec", "libavdevice", "libavfilter", "libavformat", "libavutil", "libswresample", "libswscale", "libmpv", "libplacebo", "libdav1d"],
+  "forbidden_needed": ["libx264", "libx265", "libpostproc", "libssl", "libcrypto", "libmbedtls", "libsmbclient", "libluajit", "liblua", "libvulkan", "libshaderc", "libglslang"]
+}

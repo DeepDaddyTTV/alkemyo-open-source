@@ -1,0 +1,68 @@
+{
+  "source_commit": "288527dffbc6d3e63cce147fc7b520c64a791603",
+  "dependencies": [
+    {
+      "name": "Libunibreak",
+      "url": "https://github.com/mpvkit/libass-build/releases/download/0.17.5/Libunibreak.xcframework.zip",
+      "sha256": "940d9833cf4477d0a260d9f2b4066125bc0ff7bbc111ac3c90e774765b77a559"
+    },
+    {
+      "name": "Libfreetype",
+      "url": "https://github.com/mpvkit/libass-build/releases/download/0.17.5/Libfreetype.xcframework.zip",
+      "sha256": "496ca62488530e14b1e4624d20ee2b237c0bd675cd70c19da578a5768302d02d"
+    },
+    {
+      "name": "Libfribidi",
+      "url": "https://github.com/mpvkit/libass-build/releases/download/0.17.5/Libfribidi.xcframework.zip",
+      "sha256": "bc15e097b892f2f90424e4a27ba287070cc2f98a74a4da10e6d2481d15cf5ff9"
+    },
+    {
+      "name": "Libharfbuzz",
+      "url": "https://github.com/mpvkit/libass-build/releases/download/0.17.5/Libharfbuzz.xcframework.zip",
+      "sha256": "aa8e0b9ca0387dac74e3e93c86e34d11982bb013b28022d0e6966a8427a35b2e"
+    },
+    {
+      "name": "Libass",
+      "url": "https://github.com/mpvkit/libass-build/releases/download/0.17.5/Libass.xcframework.zip",
+      "sha256": "3f4c576d2818ceb4544aa2a20e1f55846511c5e706fd19adc3ea9fd842270498"
+    },
+    {
+      "name": "Libbluray",
+      "url": "https://github.com/mpvkit/libbluray-build/releases/download/1.4.0/Libbluray.xcframework.zip",
+      "sha256": "bc037d34e2b0b5ab7f202fb371f5fb298136cc66fdf406c2172185d06f53f18d"
+    },
+    {
+      "name": "Libdovi",
+      "url": "https://github.com/mpvkit/libdovi-build/releases/download/3.3.2/Libdovi.xcframework.zip",
+      "sha256": "e693e239808350868e79c5448ef9f02e2716bc822dd8632a41a368a1eae5ca7d"
+    },
+    {
+      "name": "lcms2",
+      "url": "https://github.com/mpvkit/lcms2-build/releases/download/2.17.0/lcms2.xcframework.zip",
+      "sha256": "dc0dce0606f6ab6841a8ec5a6bd4448e2f3ef00661a050460f806c9393dc6982"
+    },
+    {
+      "name": "Libplacebo",
+      "url": "https://github.com/mpvkit/libplacebo-build/releases/download/7.360.1/Libplacebo.xcframework.zip",
+      "sha256": "2fa3d54cb81f302d6f11c7b2f509af30944381c3b11ee9d35096eb4637a6e2dd"
+    },
+    {
+      "name": "Libuchardet",
+      "url": "https://github.com/mpvkit/libuchardet-build/releases/download/0.0.8/Libuchardet.xcframework.zip",
+      "sha256": "ea4f548a230a755e059144657cc9e2ff563c1cdeae03974c38f8b6e1a40303fb"
+    }
+  ],
+  "systemLibraries": [
+    {
+      "name": "libarchive",
+      "version": "3.7.4 (macOS system copy; bsdtar 3.5.3 reports libarchive 3.7.4 on this build host)",
+      "path": "/usr/lib/libarchive.2.dylib",
+      "linkage": "dlopen at run time by AlkemyoCore NinaSystemArchive; not bundled",
+      "license": "BSD-2-Clause",
+      "use": "read-only RAR (CBR) and 7z (CB7) comic archives for the page reader",
+      "notice": "player-licenses/libarchive-COPYING.txt",
+      "noticeSource": "https://raw.githubusercontent.com/libarchive/libarchive/v3.7.4/COPYING",
+      "noticeSha256": "b2cdf763345de2de34cebf54394df3c61a105c3b71288603c251f2fa638200ba"
+    }
+  ]
+}

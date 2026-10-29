@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "architecture": "x86_64",
+  "minimumCPU": "generic x86-64 (not x86-64-v3)",
+  "archive": {
+    "name": "mpv-dev-lgpl-x86_64-20261003-git-413ff0b1cd.7z",
+    "url": "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-03-413ff0b1cd/mpv-dev-lgpl-x86_64-20261003-git-413ff0b1cd.7z",
+    "sha256": "12a9966bad239672c97276f01a9e625504e0b1d1fdcff95256066eeb8ffb1f21",
+    "bytes": 28847776
+  },
+  "dll": {
+    "name": "libmpv-2.dll",
+    "sha256": "6209dfe89b45d726bedc3b932e9321e9d1a49b64b2e1fefdf8c2973e384e7001",
+    "bytes": 101071872,
+    "machine": "0x8664",
+    "authenticode": "No upstream PE certificate table; this DLL is unsigned."
+  },
+  "sources": {
+    "mpv": {
+      "commit": "413ff0b1cd4585294803308a1a14be2fad30cede",
+      "url": "https://github.com/mpv-player/mpv/tree/413ff0b1cd4585294803308a1a14be2fad30cede",
+      "reportedVersion": "v0.41.0-1095-g413ff0b1c",
+      "license": "LGPL-2.1-or-later with gpl=false"
+    },
+    "ffmpeg": {
+      "commit": "c9c35450343397c0ed6df2579d532f179dd8a2f3",
+      "url": "https://github.com/FFmpeg/FFmpeg/tree/c9c35450343397c0ed6df2579d532f179dd8a2f3",
+      "reportedVersion": "N-127138-gc9c354503",
+      "license": "LGPL-3.0-or-later according to LGPL build configuration; statically linked into replaceable DLL"
+    },
+    "builder": {
+      "commit": "88bdc4db67bb476a7606921eb2d68b273440d59b",
+      "url": "https://github.com/zhongfly/mpv-winbuild/tree/88bdc4db67bb476a7606921eb2d68b273440d59b",
+      "workflow": "https://github.com/zhongfly/mpv-winbuild/actions/runs/37121493138",
+      "lgplPatch": "https://github.com/zhongfly/mpv-winbuild/blob/88bdc4db67bb476a7606921eb2d68b273440d59b/compile-lgpl-libmpv.patch",
+      "lgplPatchSHA256": "d19c51381fd6464b3041d87e0bfe448a8595bf76a125c98c0ac27582cb2397d7",
+      "workflowRun": {
+        "runId": 37121493138,
+        "url": "https://github.com/zhongfly/mpv-winbuild/actions/runs/37121493138",
+        "runtimeArtifactId": 11274087086,
+        "runtimeArtifactName": "mpv-dev-lgpl-x86_64-20261003-git-413ff0b1cd.7z",
+        "runtimeArtifactBytes": 28847776,
+        "runtimeArtifactSHA256": "12a9966bad239672c97276f01a9e625504e0b1d1fdcff95256066eeb8ffb1f21"
+      }
+    }
+  },
+  "buildConfiguration": {
+    "mpv": [
+      "-Dgpl=false",
+      "-Dcplayer=false",
+      "-Dlibmpv=true",
+      "--default-library=shared",
+      "--prefer-static",
+      "-Ddvdnav=disabled",
+      "-Drubberband=disabled",
+      "-Dopenal=disabled"
+    ],
+    "ffmpeg": [
+      "--enable-version3",
+      "GPL flag removed",
+      "x264/x265/davs2/rubberband/libzvbi removed"
+    ],
+    "notes": [
+      "Upstream LGPL patch and binary feature list contain no mpv gpl feature.",
+      "Full corresponding-source/transitive-license inventory must be completed before commercial binary distribution.",
+      "Upstream only retains 30 days of release assets. Retain this verified archive and corresponding sources for reproducible distribution; the downloader fails closed if the pinned asset disappears.",
+      "Private test packaging can include commit-pinned mpv, FFmpeg, builder/patch, Vulkan source archives and the verified publisher binary archive; upstream builder does not guarantee every dependency is LGPL-compatible, and its packaging input is not fully pinned. Distribution clearance remains pending."
+    ]
+  },
+  "binaryEvidence": {
+    "peMachine": "0x8664",
+    "dllBytes": 101071872,
+    "requiredAPIExports": [
+      "mpv_create",
+      "mpv_initialize",
+      "mpv_terminate_destroy",
+      "mpv_wakeup",
+      "mpv_wait_event",
+      "mpv_error_string",
+      "mpv_set_option_string",
+      "mpv_set_property_async",
+      "mpv_get_property",
+      "mpv_get_property_string",
+      "mpv_free",
+      "mpv_free_node_contents",
+      "mpv_command_async"
+    ],
+    "allRequiredExportsPresent": true,
+    "imports": [
+      "GDI32.dll",
+      "ole32.dll",
+      "USER32.dll",
+      "VERSION.dll",
+      "vulkan-1.dll",
+      "ADVAPI32.dll",
+      "KERNEL32.dll",
+      "OLEAUT32.dll",
+      "api-ms-win-core-winrt-l1-1-0.dll",
+      "ntdll.dll",
+      "AVRT.dll",
+      "dwmapi.dll",
+      "IMM32.dll",
+      "api-ms-win-core-path-l1-1-0.dll",
+      "SHCORE.dll",
+      "UxTheme.dll",
+      "api-ms-win-core-winrt-error-l1-1-1.dll",
+      "SHELL32.dll",
+      "OPENGL32.dll",
+      "api-ms-win-crt-stdio-l1-1-0.dll",
+      "api-ms-win-crt-environment-l1-1-0.dll",
+      "api-ms-win-crt-runtime-l1-1-0.dll",
+      "api-ms-win-crt-filesystem-l1-1-0.dll",
+      "api-ms-win-crt-string-l1-1-0.dll",
+      "api-ms-win-crt-private-l1-1-0.dll",
+      "api-ms-win-crt-locale-l1-1-0.dll",
+      "api-ms-win-crt-time-l1-1-0.dll",
+      "api-ms-win-crt-convert-l1-1-0.dll",
+      "api-ms-win-crt-utility-l1-1-0.dll",
+      "api-ms-win-crt-heap-l1-1-0.dll",
+      "api-ms-win-crt-math-l1-1-0.dll",
+      "api-ms-win-crt-multibyte-l1-1-0.dll",
+      "bcrypt.dll",
+      "SHLWAPI.dll",
+      "WS2_32.dll",
+      "DWrite.dll",
+      "Secur32.dll",
+      "IPHLPAPI.DLL",
+      "WLDAP32.dll",
+      "CRYPT32.dll",
+      "api-ms-win-core-synch-l1-2-0.dll",
+      "bcryptprimitives.dll",
+      "AVICAP32.dll",
+      "WINMM.dll",
+      "SETUPAPI.dll",
+      "Normaliz.dll",
+      "d2d1.dll"
+    ],
+    "reportedEnabledFeatures": "List of enabled features: amf build-date cplugins cuda-hwaccel cuda-interop d3d-hwaccel d3d11 d3d9-hwaccel debug dos-paths dxgi-debug-d3d11 egl-angle egl-angle-win32 ffmpeg ffnvcodec gl gl-dxinterop gl-dxinterop-d3d9 gl-win32 glob glob-win32 iconv javascript jpeg lcms2 libarchive libass libavdevice libbluray libcurl libplacebo luajit sdl2-gamepad shaderc sixel spirv-cross subrandr uchardet vaapi vaapi-win32 vapoursynth vector vk-khr-display vulkan wasapi win32 win32-desktop win32-smtc win32-threads zimg zimg-st428 zlib",
+    "authenticodeCertificateBytes": 0,
+    "windowsExecution": "Not executed on this Mac; headless actual Windows DLL tests are configured for Windows CI."
+  },
+  "vulkanLoader": {
+    "name": "vulkan-1.dll",
+    "version": "1.4.363",
+    "sources": {
+      "Vulkan-Loader": {
+        "commit": "fa218055ff4948b159f31d43f800c808a13d51df",
+        "archive": "Vulkan-Loader-fa218055ff4948b159f31d43f800c808a13d51df.zip",
+        "url": "https://codeload.github.com/KhronosGroup/Vulkan-Loader/zip/fa218055ff4948b159f31d43f800c808a13d51df",
+        "sha256": "ddab25cb4f206384b232674105144c828391dfad38be5e4f4442c449a7ce0bf4",
+        "bytes": 2065515
+      },
+      "Vulkan-Headers": {
+        "commit": "6802bb4733b63ed5efd3adb308a6c885ef180ea1",
+        "archive": "Vulkan-Headers-6802bb4733b63ed5efd3adb308a6c885ef180ea1.zip",
+        "url": "https://codeload.github.com/KhronosGroup/Vulkan-Headers/zip/6802bb4733b63ed5efd3adb308a6c885ef180ea1",
+        "sha256": "3760505ffbd3589de77e1b9f5ba11eaac13d3c86869588e19f3df3e0fac7e69c",
+        "bytes": 3457924
+      }
+    },
+    "build": [
+      "MSVC x64 Release",
+      "BUILD_TESTS=OFF",
+      "UPDATE_DEPS=OFF",
+      "LOADER_CODEGEN=OFF"
+    ],
+    "loading": "Prefer system32 loader, with app-local source-built fallback for machines with no Vulkan runtime."
+  },
+  "correspondingSources": [
+    {
+      "archive": "mpv-source-413ff0b1cd4585294803308a1a14be2fad30cede.zip",
+      "url": "https://codeload.github.com/mpv-player/mpv/zip/413ff0b1cd4585294803308a1a14be2fad30cede",
+      "sha256": "e50b736a5d53a6719932ebc4fb8ad493cb015927a3288ae2ed93b1f34b76e3c0",
+      "bytes": 8098359,
+      "role": "Pinned mpv source at the runtime build commit."
+    },
+    {
+      "archive": "ffmpeg-source-c9c35450343397c0ed6df2579d532f179dd8a2f3.zip",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/zip/c9c35450343397c0ed6df2579d532f179dd8a2f3",
+      "sha256": "9da3a85c919a97176c6e4d53c898622c9de091c191a939166c17eba1ec36dd5b",
+      "bytes": 24359046,
+      "role": "Pinned FFmpeg source at the runtime build commit."
+    },
+    {
+      "archive": "mpv-winbuild-source-88bdc4db67bb476a7606921eb2d68b273440d59b.zip",
+      "url": "https://codeload.github.com/zhongfly/mpv-winbuild/zip/88bdc4db67bb476a7606921eb2d68b273440d59b",
+      "sha256": "9456cb8ee0bc72a93d65c1491b7078031dea543cd1d6820f263746e9c2d0c809",
+      "bytes": 31753,
+      "role": "Pinned upstream builder source."
+    },
+    {
+      "archive": "compile-lgpl-libmpv.patch",
+      "url": "https://raw.githubusercontent.com/zhongfly/mpv-winbuild/88bdc4db67bb476a7606921eb2d68b273440d59b/compile-lgpl-libmpv.patch",
+      "sha256": "d19c51381fd6464b3041d87e0bfe448a8595bf76a125c98c0ac27582cb2397d7",
+      "bytes": 8316,
+      "role": "Exact builder LGPL configuration patch."
+    }
+  ]
+}
