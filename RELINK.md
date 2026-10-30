@@ -41,7 +41,9 @@ cache, in folders whose paths have no spaces. The cache is `cache/` inside the c
    Use `tvos` instead of `ios` for Apple TV. This writes `AlkemyoFFmpeg.xcframework` and `AlkemyoMPV.xcframework` to
    `output/ios` (or `output/tvos`), with their build receipts. Make your changes to the sources or patches first. A build
    you can use has to keep the same public C API.
-3. Unpack an alkemyo build you have (`unzip <file>.ipa`). The app is `Payload/Alkemyo iPad.app` for iPhone and iPad and
+3. Get an alkemyo build you can re-sign. App Store and TestFlight copies are encrypted by Apple and can't be re-signed, so
+   email alkemyomedia@gmail.com to receive an unencrypted .ipa of the same version and build, which we provide on request.
+   Unpack it (`unzip <file>.ipa`). The app is `Payload/Alkemyo iPad.app` for iPhone and iPad and
    `Payload/alkemyo TV.app` for Apple TV.
 4. Replace `Frameworks/AlkemyoFFmpeg.framework` and `Frameworks/AlkemyoMPV.framework` inside the app with the device
    slices of your build: `output/ios/AlkemyoFFmpeg.xcframework/ios-arm64/AlkemyoFFmpeg.framework` and
