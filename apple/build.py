@@ -5,7 +5,7 @@
 
 Writes output/<platform>/AlkemyoFFmpeg.xcframework, AlkemyoMPV.xcframework and their build receipts
 (ffmpeg-build.json, mpv-build.json). --tools is a folder with bin/meson, bin/ninja and bin/pkg-config
-(meson 1.4.2, ninja 1.13.0, pkgconf 3.0.7). The mpv source archive is downloaded from GitHub and checked
+(meson 1.4.2, ninja 1.13.0, pkgconf 2.5.1). The mpv source archive is downloaded from GitHub and checked
 against apple/pins/mpv-source-pin.json unless --archive gives a local copy. No signing. See RELINK.md.
 """
 import argparse, json, pathlib, sys
