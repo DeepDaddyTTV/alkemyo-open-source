@@ -1,6 +1,7 @@
 {
   "schema": 1,
-  "purpose": "Pinned sources for the LGPL player runtime the Linux .deb ships in /opt/alkemyo/lib (licensing L04). Read by scripts/build-linux-player.py. Each archive is checked by sha256 before it is unpacked; the mirror is the Ubuntu archive's copy of the same upstream release.",
+  "mpv_buildtype": "release, from the shared meson --buildtype (meson refuses it twice)",
+  "purpose": "Pinned sources for the LGPL player runtime the Linux .deb ships in /opt/alkemyo/lib (licensing L04). Read by linux/build-linux-player.py. Each archive is checked by sha256 before it is unpacked; the mirror is the Ubuntu archive's copy of the same upstream release.",
   "sources": {
     "ffmpeg": {
       "version": "8.1.2",
@@ -29,6 +30,14 @@
       "sha256": "3e697b2831fe75acbe096ac85114c3b425c25bbbac427b03a923ac0f4db27e79",
       "notices": ["LICENSE"]
     },
+    "libdisplay-info": {
+      "version": "0.2.0",
+      "licence": "MIT",
+      "url": "https://gitlab.freedesktop.org/emersion/libdisplay-info/-/tags/0.2.0",
+      "mirror": "http://archive.ubuntu.com/ubuntu/pool/main/libd/libdisplay-info/libdisplay-info_0.2.0.orig.tar.bz2",
+      "sha256": "f6cf2ddbba3753ae38de5113d1fcb8fab977dfaf5fb07b38cd68d8482765e208",
+      "notices": ["LICENSE"]
+    },
     "dav1d": {
       "version": "1.5.3",
       "licence": "BSD-2-Clause",
@@ -44,12 +53,13 @@
     "forbidden": ["--enable-version3", "--enable-gpl", "--enable-nonfree", "--enable-gmp", "--enable-openssl", "--enable-libsmbclient", "--enable-libx264", "--enable-libx265", "--enable-postproc", "--enable-mbedtls"]
   },
   "mpv_options": {
-    "required": ["-Dlibmpv=true", "-Dcplayer=false", "-Dgpl=false", "-Dbuildtype=release", "-Db_lundef=true", "-Dauto_features=disabled", "-Dlua=disabled",
+    "required": ["-Dlibmpv=true", "-Dcplayer=false", "-Dgpl=false", "-Db_lundef=true", "-Dauto_features=disabled", "-Dlua=disabled",
                  "-Diconv=enabled", "-Duchardet=enabled", "-Dlibbluray=enabled", "-Dlcms2=enabled", "-Dzlib=enabled", "-Dlibavdevice=enabled",
-                 "-Dgl=enabled", "-Dplain-gl=enabled", "-Degl=enabled", "-Dx11=enabled", "-Dvaapi=enabled", "-Dvaapi-x11=enabled", "-Dvaapi-drm=enabled", "-Ddrm=enabled",
-                 "-Dpulse=enabled", "-Dpipewire=enabled", "-Dalsa=enabled"]
+                 "-Dgl=enabled", "-Dplain-gl=enabled", "-Degl=enabled", "-Ddrm=enabled", "-Dvaapi=enabled", "-Dvaapi-drm=enabled",
+                 "-Dpulse=enabled", "-Dalsa=enabled"],
+    "notes": "mpv's X11 backend is GPL-only (meson: x11 requires gpl), so VA-API uses its DRM display (vaapi-drm, which needs drm and libdisplay-info); the render API draws into alkemyo's own GL surface and needs no mpv window. PipeWire needs libpipewire >= 0.3.57 and Ubuntu 22.04 has 0.3.48, so audio goes through PulseAudio (pipewire-pulse on PipeWire systems) or ALSA."
   },
   "libplacebo_options": ["-Dvulkan=disabled", "-Dopengl=enabled", "-Dd3d11=disabled", "-Dlcms=enabled", "-Dxxhash=disabled", "-Dshaderc=disabled", "-Dglslang=disabled", "-Ddovi=disabled", "-Dlibdovi=disabled", "-Ddemos=false", "-Dtests=false", "-Dunwind=disabled"],
-  "bundled": ["libavcodec", "libavdevice", "libavfilter", "libavformat", "libavutil", "libswresample", "libswscale", "libmpv", "libplacebo", "libdav1d"],
-  "forbidden_needed": ["libx264", "libx265", "libpostproc", "libssl", "libcrypto", "libmbedtls", "libsmbclient", "libluajit", "liblua", "libvulkan", "libshaderc", "libglslang"]
+  "bundled": ["libavcodec", "libavdevice", "libavfilter", "libavformat", "libavutil", "libswresample", "libswscale", "libmpv", "libplacebo", "libdav1d", "libdisplay-info"],
+  "forbidden_needed": ["libX11", "libpipewire-0.3", "libx264", "libx265", "libpostproc", "libssl", "libcrypto", "libmbedtls", "libsmbclient", "libluajit", "liblua", "libvulkan", "libshaderc", "libglslang"]
 }

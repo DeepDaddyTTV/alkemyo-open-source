@@ -2,7 +2,7 @@
 """Build the LGPL player runtime that the Linux .deb ships in /opt/alkemyo/lib (licensing L04).
 
 FFmpeg, libmpv, libplacebo and dav1d are compiled from the checksum-pinned sources in
-scripts/linux-player-sources.json and installed with RPATH $ORIGIN, so alkemyo never
+linux-player-sources.json and installed with RPATH $ORIGIN, so alkemyo never
 loads a distribution libmpv or FFmpeg (those are GPL builds on Ubuntu, Mint and
 elementary OS). The build fails unless FFmpeg reports "LGPL version 2.1 or later",
 mpv was configured with -Dgpl=false, and every NEEDED library is either bundled here
@@ -22,12 +22,12 @@ import sys
 import tarfile
 
 ROOT = Path(__file__).resolve().parent.parent
-SPEC = ROOT / "scripts/linux-player-sources.json"
+SPEC = Path(__file__).resolve().parent / "linux-player-sources.json"
 # NEEDED entries a bundled library may have that come from the system. Every one is
 # LGPL-2.1+-compatible as a dynamic dependency; gnutls brings nettle/gmp (LGPLv3+ or
 # GPLv2+), whose texts ship in the notices.
 SYSTEM_NEEDED = re.compile(r"^(libc|libm|libdl|libpthread|librt|libgcc_s|libstdc\+\+|ld-linux[-a-z0-9_]*|libz|libgnutls|libass|liblcms2|libuchardet|libbluray"
-                           r"|libva|libva-drm|libva-x11|libdrm|libpulse|libpipewire-0\.3|libasound|libX11|libXext|libXrandr|libXpresent|libXss|libXinerama|libEGL|libGL|libGLX"
+                           r"|libva|libva-drm|libdrm|libpulse|libasound|libEGL|libGL|libGLX|libOpenGL"
                            r"|libfreetype|libfribidi|libharfbuzz|libfontconfig|libxml2)\.so(\.[0-9]+)*$")
 LGPL = "LGPL version 2.1 or later"
 DOWNLOAD = False
@@ -136,7 +136,7 @@ def build(sources, output, jobs=None):
     subprocess.run([sys.executable, "-m", "venv", str(tools)], check=True)
     run([tools / "bin/pip", "install", "--disable-pip-version-check", "--no-cache-dir", *spec["python"]], log=log)
     env = {**os.environ, "PATH": f"{tools / 'bin'}:{os.environ['PATH']}",
-           "PKG_CONFIG_PATH": str(prefix / "lib/pkgconfig"), "LDFLAGS": "-Wl,-rpath,'$ORIGIN' -Wl,--enable-new-dtags",
+           "PKG_CONFIG_PATH": str(prefix / "lib/pkgconfig"), "LDFLAGS": "-Wl,--enable-new-dtags",
            "CFLAGS": "-O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2", "PYTHONNOUSERSITE": "1"}
     meson = [tools / "bin/meson", "setup", "--prefix", prefix, "--libdir", "lib", "--buildtype", "release", "-Ddefault_library=shared"]
 
@@ -149,13 +149,14 @@ def build(sources, output, jobs=None):
 
     trees = {"dav1d": meson_build("dav1d", ["-Denable_tools=false", "-Denable_tests=false"])}
     trees["ffmpeg"] = source = unpack(spec, "ffmpeg", sources, work)
-    run(["./configure", f"--prefix={prefix}", "--libdir=" + str(prefix / "lib"), *spec["ffmpeg_configure"]["required"],
-         "--extra-ldflags=-Wl,-rpath,'$$ORIGIN' -Wl,--enable-new-dtags"], cwd=source, env=env, log=log)
+    run(["./configure", f"--prefix={prefix}", "--libdir=" + str(prefix / "lib"), *spec["ffmpeg_configure"]["required"]],
+        cwd=source, env=env, log=log)
     config = (source / "config.h").read_text()
     if f'#define FFMPEG_LICENSE "{LGPL}"' not in config:
         raise PlayerBuildError("FFmpeg configure did not report " + LGPL)
     run(["make", "-j", jobs, "install"], cwd=source, env=env, log=log)
     trees["libplacebo"] = meson_build("libplacebo", spec["libplacebo_options"])
+    trees["libdisplay-info"] = meson_build("libdisplay-info", [])
     trees["mpv"] = meson_build("mpv", spec["mpv_options"]["required"])
 
     # Each library is shipped once, under its SONAME (the name NEEDED entries use); no symlinks, so the tar and
@@ -168,6 +169,8 @@ def build(sources, output, jobs=None):
         if len(soname) != 1 or "/" in soname[0] or (lib / soname[0]).exists():
             raise PlayerBuildError("Library has no single SONAME: " + path.name)
         shutil.copy2(path, lib / soname[0]); subprocess.run(["strip", "--strip-unneeded", str(lib / soname[0])], check=True)
+        # RUNPATH is set here, not through link flags: $ORIGIN does not survive FFmpeg's make and shell layers.
+        subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", str(lib / soname[0])], check=True)
     bundled = verify(spec, lib)
     licence, configuration = ffmpeg_licence(lib)
     if licence != LGPL:

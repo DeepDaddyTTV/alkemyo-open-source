@@ -10,7 +10,7 @@ alkemyo itself, including its AUTOMAIL playback engine, is proprietary. It is **
 |---|---|---|---|---|
 | iPhone, iPad, Apple TV | FFmpeg (AlkemyoFFmpeg.framework) | 8.1.2 | LGPL 2.1 or later (`--disable-gpl --disable-nonfree`) | dynamic framework |
 | iPhone, iPad, Apple TV | mpv (AlkemyoMPV.framework) | 0.41.0, commit 41f6a645 | LGPL 2.1 or later (`-Dgpl=false`) | dynamic framework; libass, FriBidi, HarfBuzz, FreeType, libunibreak, libplacebo, Little CMS, libdovi, uchardet and libbluray are linked statically inside it |
-| Linux | FFmpeg, mpv, libplacebo, dav1d | 8.1.2, 0.41.0, 7.360.1, 1.5.3 | LGPL 2.1+ (dav1d BSD-2-Clause) | shared libraries next to the app (`$ORIGIN`) |
+| Linux | FFmpeg, mpv, libplacebo, dav1d, libdisplay-info | 8.1.2, 0.41.0, 7.360.1, 1.5.3, 0.2.0 | LGPL 2.1+ (dav1d BSD-2-Clause, libdisplay-info MIT) | shared libraries next to the app (`$ORIGIN`) |
 | Windows | libmpv-2.dll (mpv with FFmpeg) | mpv-dev-lgpl 20261003 git-413ff0b1cd | LGPL 2.1 or later | DLL next to the app |
 | Mac | not distributed yet | | | |
 | Android | no LGPL native media libraries (it uses AndroidX Media3, Apache 2.0) | | | |
@@ -28,7 +28,7 @@ alkemyo itself, including its AUTOMAIL playback engine, is proprietary. It is **
 
 ## Exact sources
 
-Each alkemyo build that ships these libraries gets a **GitHub Release** in this repository, tagged with the build (for example `build-57`). Its assets are the exact upstream source archives used, which are listed with their sha256 in the pin files, plus a manifest. The builders refuse any archive whose checksum doesn't match.
+Each alkemyo build that ships these libraries gets a **GitHub Release** in this repository, tagged with the build (for example `build-57`). Its assets are the exact upstream source archives used, listed with their sha256 in the build's folder (for Build 57, `build-57/`: `README.md`, `manifest.json` and `SHA256SUMS`). The builders refuse any archive whose checksum doesn't match.
 
 Upstream sources:
 - FFmpeg: https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz
