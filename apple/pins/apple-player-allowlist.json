@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "purpose": "The only libraries alkemyo's iPhone, iPad and Apple TV media frameworks (AlkemyoFFmpeg, AlkemyoMPV) may contain or link. apple/apple_player.py checks every framework against it before writing it.",
+  "purpose": "The only libraries alkemyo's iPhone, iPad and Apple TV media frameworks (AlkemyoFFmpeg, AlkemyoMPV, AlkemyoASS) may contain or link. apple/apple_player.py checks every framework against it before writing it. alkemyo's own AlkemyoAutomail framework (not in this kit) may link only AlkemyoFFmpeg and AlkemyoASS.",
   "frameworks": {
     "AlkemyoFFmpeg": {
       "identifier": "app.alkemyo.player.ffmpeg",
@@ -22,6 +22,18 @@
       "links": [
         "AlkemyoFFmpeg"
       ]
+    },
+    "AlkemyoASS": {
+      "identifier": "app.alkemyo.player.ass",
+      "licence": "ISC (libass) with FreeType, HarfBuzz, FriBidi (LGPL 2.1 or later) and libunibreak",
+      "archives": [
+        "Libass",
+        "Libfreetype",
+        "Libharfbuzz",
+        "Libfribidi",
+        "Libunibreak"
+      ],
+      "links": []
     }
   },
   "ffmpeg_configure": {
@@ -197,5 +209,279 @@
   "mpv_overlay": [
     "apple/patches/libmpv_alkemyo.c",
     "apple/patches/alkemyo_native_buffer.h"
-  ]
+  ],
+  "notices": {
+    "FFmpeg 8.1.2": {
+      "licence": "LGPL 2.1 or later",
+      "files": [
+        "FFmpeg-LICENSE.md",
+        "LGPL-2.1.txt"
+      ],
+      "source": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz"
+    },
+    "mpv 0.41.0": {
+      "licence": "LGPL 2.1 or later (built with -Dgpl=false)",
+      "files": [
+        "mpv-Copyright.txt",
+        "LGPL-2.1.txt"
+      ],
+      "source": "https://github.com/mpv-player/mpv/tree/v0.41.0"
+    },
+    "libass": {
+      "licence": "ISC",
+      "files": [
+        "libass-COPYING.txt"
+      ],
+      "archive": "Libass",
+      "source": "https://github.com/libass/libass"
+    },
+    "FreeType": {
+      "licence": "FreeType Project License",
+      "files": [
+        "FreeType-FTL.txt"
+      ],
+      "archive": "Libfreetype",
+      "source": "https://github.com/freetype/freetype"
+    },
+    "HarfBuzz": {
+      "licence": "Old MIT",
+      "files": [
+        "HarfBuzz-COPYING.txt"
+      ],
+      "archive": "Libharfbuzz",
+      "source": "https://github.com/harfbuzz/harfbuzz"
+    },
+    "FriBidi": {
+      "licence": "LGPL 2.1 or later",
+      "files": [
+        "FriBidi-COPYING.txt"
+      ],
+      "archive": "Libfribidi",
+      "source": "https://github.com/fribidi/fribidi"
+    },
+    "libunibreak": {
+      "licence": "zlib",
+      "files": [
+        "libunibreak-LICENCE.txt"
+      ],
+      "archive": "Libunibreak",
+      "source": "https://github.com/adah1972/libunibreak"
+    },
+    "libplacebo 7.360.1": {
+      "licence": "LGPL 2.1 or later",
+      "files": [
+        "libplacebo-LICENSE.txt"
+      ],
+      "archive": "Libplacebo",
+      "source": "https://code.videolan.org/videolan/libplacebo"
+    },
+    "Little CMS 2.17.0": {
+      "licence": "MIT",
+      "files": [
+        "LittleCMS-LICENSE.txt"
+      ],
+      "archive": "lcms2",
+      "source": "https://github.com/mm2/Little-CMS"
+    },
+    "libdovi 3.3.2": {
+      "licence": "MIT",
+      "files": [
+        "dovi_tool-LICENSE.txt"
+      ],
+      "archive": "Libdovi",
+      "source": "https://github.com/quietvoid/dovi_tool"
+    },
+    "uchardet 0.0.8": {
+      "licence": "MPL 1.1 (tri-licensed MPL 1.1, GPL 2, LGPL 2.1; used under MPL 1.1 or LGPL 2.1)",
+      "files": [
+        "uchardet-COPYING.txt"
+      ],
+      "archive": "Libuchardet",
+      "source": "https://gitlab.freedesktop.org/uchardet/uchardet"
+    },
+    "libbluray 1.4.0": {
+      "licence": "LGPL 2.1 or later",
+      "files": [
+        "libbluray-COPYING.txt"
+      ],
+      "archive": "Libbluray",
+      "source": "https://code.videolan.org/videolan/libbluray"
+    },
+    "libudfread (inside libbluray 1.4.0)": {
+      "licence": "LGPL 2.1 or later",
+      "files": [
+        "libudfread-NOTICE.txt",
+        "LGPL-2.1.txt"
+      ],
+      "inside": "Libbluray",
+      "source": "https://code.videolan.org/videolan/libudfread"
+    },
+    "fast_float (inside libplacebo 7.360.1)": {
+      "licence": "MIT (of MIT OR Apache-2.0 OR BSL-1.0)",
+      "files": [
+        "fast_float-LICENSE-MIT.txt"
+      ],
+      "inside": "Libplacebo",
+      "source": "https://github.com/fastfloat/fast_float"
+    },
+    "glad-generated OpenGL and EGL loaders (inside libplacebo 7.360.1)": {
+      "licence": "(WTFPL OR CC0-1.0) AND Apache-2.0 (the Khronos specifications)",
+      "files": [
+        "glad-LICENSE.txt",
+        "Apache-2.0.txt"
+      ],
+      "inside": "Libplacebo",
+      "source": "https://github.com/Dav1dde/glad"
+    },
+    "Rust standard library (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "Rust-std-COPYRIGHT.txt",
+        "Rust-std-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/rust-lang/rust"
+    },
+    "Rust crate addr2line 0.25.1 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of Apache-2.0 OR MIT)",
+      "files": [
+        "rust-addr2line-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/gimli-rs/addr2line"
+    },
+    "Rust crate anyhow 1.0.98 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "rust-anyhow-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/dtolnay/anyhow"
+    },
+    "Rust crate bitstream-io 2.6.0 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "rust-bitstream-io-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/tuffy/bitstream-io"
+    },
+    "Rust crate bitvec 1.0.1 (inside libdovi 3.3.2)": {
+      "licence": "MIT",
+      "files": [
+        "rust-bitvec-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/ferrilab/bitvec"
+    },
+    "Rust crate crc 3.3.0 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "rust-crc-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/mrhooray/crc-rs"
+    },
+    "Rust crate funty 2.0.0 (inside libdovi 3.3.2)": {
+      "licence": "MIT",
+      "files": [
+        "rust-funty-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/myrrlyn/funty"
+    },
+    "Rust crate gimli 0.32.3 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "rust-gimli-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/gimli-rs/gimli"
+    },
+    "Rust crate hashbrown 0.16.1 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "rust-hashbrown-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/rust-lang/hashbrown"
+    },
+    "Rust crate memchr 2.7.6 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of Unlicense OR MIT)",
+      "files": [
+        "rust-memchr-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/BurntSushi/memchr"
+    },
+    "Rust crate miniz_oxide 0.8.9 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Zlib OR Apache-2.0)",
+      "files": [
+        "rust-miniz_oxide-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/Frommi/miniz_oxide"
+    },
+    "Rust crate object 0.37.3 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of Apache-2.0 OR MIT)",
+      "files": [
+        "rust-object-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/gimli-rs/object"
+    },
+    "Rust crate radium 0.7.0 (inside libdovi 3.3.2)": {
+      "licence": "MIT",
+      "files": [
+        "rust-radium-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/bitvecto-rs/radium"
+    },
+    "Rust crate rustc-demangle 0.1.26 (inside libdovi 3.3.2)": {
+      "licence": "MIT (of MIT OR Apache-2.0)",
+      "files": [
+        "rust-rustc-demangle-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/rust-lang/rustc-demangle"
+    },
+    "Rust crate tinyvec 1.9.0 (inside libdovi 3.3.2)": {
+      "licence": "Zlib (of Zlib OR Apache-2.0 OR MIT)",
+      "files": [
+        "rust-tinyvec-LICENSE-ZLIB.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/Lokathor/tinyvec"
+    },
+    "Rust crate wyz 0.5.1 (inside libdovi 3.3.2)": {
+      "licence": "MIT",
+      "files": [
+        "rust-wyz-LICENSE-MIT.txt"
+      ],
+      "inside": "Libdovi",
+      "source": "https://github.com/myrrlyn/wyz"
+    },
+    "alkemyo Dolby Vision RPU reader": {
+      "licence": "alkemyo; layout and 8.1 conversion follow dovi_tool (MIT)",
+      "files": [
+        "dovi_tool-LICENSE.txt"
+      ],
+      "source": "https://github.com/quietvoid/dovi_tool"
+    },
+    "StPageFlip (reader page turn geometry)": {
+      "licence": "MIT",
+      "files": [
+        "StPageFlip-LICENSE.txt"
+      ],
+      "source": "https://github.com/Nodlik/StPageFlip"
+    },
+    "Anime4K v3.2 Upscale CNN x2 (S) (AUTOMAIL frame filter, Metal port of its weights)": {
+      "licence": "MIT",
+      "files": [
+        "Anime4K-LICENSE.txt"
+      ],
+      "source": "https://github.com/bloc97/Anime4K"
+    }
+  }
 }

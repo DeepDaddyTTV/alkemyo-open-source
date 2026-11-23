@@ -1,11 +1,15 @@
 """Builder for alkemyo's LGPL media frameworks on iPhone, iPad and Apple TV.
 
-Two separate dynamic frameworks per Apple platform, each with its own install name:
+Three separate dynamic frameworks per Apple platform, each with its own install name:
 
-    AlkemyoFFmpeg    FFmpeg compiled from the pinned source, LGPL 2.1 (no version3, no GPL, Apple's TLS)
+    AlkemyoFFmpeg    FFmpeg compiled from the pinned source, LGPL 2.1 (no version3, no GPL, no external TLS)
     AlkemyoMPV       mpv compiled from the pinned source (-Dgpl=false) with only the allow-listed prebuilt static
                      libraries, linked to AlkemyoFFmpeg
+    AlkemyoASS       libass with FreeType, HarfBuzz, FriBidi and libunibreak (allow-listed prebuilt static libraries)
+                     as one replaceable library, with no alkemyo code in it
 
+alkemyo's own AUTOMAIL media layer (AlkemyoAutomail.framework, not part of this kit) links AlkemyoFFmpeg and AlkemyoASS
+dynamically, so replacing either framework replaces what AUTOMAIL uses too.
 apple/pins/apple-player-allowlist.json is the list of what may be linked; every framework is checked against it
 (otool -L and nm) before it is written. apple/build.py is the command-line entry point; see RELINK.md.
 Builds need macOS with Xcode, and for AlkemyoMPV meson, ninja and pkg-config.
@@ -30,7 +34,7 @@ FFMPEG_FRAMEWORKS = ['AudioToolbox', 'AVFoundation', 'CoreAudio', 'CoreFoundatio
 
 
 def allowlist():
-    return json.loads(ALLOWLIST.read_text())
+    return json.loads(ALLOWLIST.read_text(encoding='utf-8'))
 
 
 def digest(path):
@@ -53,6 +57,15 @@ def write_changed(path, data):
     if not path.exists() or path.read_bytes() != data: path.write_bytes(data)
 
 
+def link_map(name, sdk):
+    """ld's link map for one framework slice, only when ALKEMYO_LINK_MAP_DIR is set (licensing evidence: which archive
+    members each binary links). The map is a side output; the binary is the same with or without it."""
+    folder = os.environ.get('ALKEMYO_LINK_MAP_DIR')
+    if not folder: return []
+    path = pathlib.Path(folder).absolute(); path.mkdir(parents=True, exist_ok=True)
+    return ['-Wl,-map,' + str(path / (name + '-' + sdk + '.map'))]
+
+
 def sdk_path(sdk):
     return output(['xcrun', '--sdk', sdk, '--show-sdk-path']).strip()
 
@@ -63,7 +76,7 @@ def framework_dir(platform, name, slice_name):
 
 # Required-reason APIs each framework calls, for its App Store privacy manifest: FFmpeg's and mpv's file access stats
 # files for the app (0A2A.1, a third-party wrapper), mpv's timers read mach_absolute_time (35F9.1).
-PRIVACY = {'AlkemyoFFmpeg': [('NSPrivacyAccessedAPICategoryFileTimestamp', '0A2A.1')],
+PRIVACY = {'AlkemyoASS': [('NSPrivacyAccessedAPICategoryFileTimestamp', '0A2A.1')], 'AlkemyoFFmpeg': [('NSPrivacyAccessedAPICategoryFileTimestamp', '0A2A.1')],
            'AlkemyoMPV': [('NSPrivacyAccessedAPICategoryFileTimestamp', '0A2A.1'), ('NSPrivacyAccessedAPICategorySystemBootTime', '35F9.1')]}
 
 
@@ -80,7 +93,7 @@ def info_plist(framework, name, identifier, platform, sdk):
 # ---- Pinned MPVKit archives (allow-listed static libraries and headers only) ----
 
 def pinned(name):
-    manifest = json.loads((ROOT / 'apple/pins/prebuilt-dependencies.json').read_text())
+    manifest = json.loads((ROOT / 'apple/pins/prebuilt-dependencies.json').read_text(encoding='utf-8'))
     return next(d for d in manifest['dependencies'] if d['name'] == name)
 
 
@@ -107,7 +120,7 @@ def extract_static(name, platform, sdk, directory):
     with zipfile.ZipFile(fetch(dep)) as z:
         entry = archive_entry(z, name, platform, variant)
         expected = {'archive_sha256': dep['sha256'], 'slice': entry['LibraryIdentifier']}
-        cached = json.loads(record.read_text()) if record.exists() else {}
+        cached = json.loads(record.read_text(encoding='utf-8')) if record.exists() else {}
         if not library.exists() or any(cached.get(k) != v for k, v in expected.items()) or cached.get('binary_sha256') != digest(library):
             prefix = name + '.xcframework/'
             binary = prefix + entry['LibraryIdentifier'] + '/' + entry.get('BinaryPath', entry['LibraryPath'] + '/' + name)
@@ -115,7 +128,7 @@ def extract_static(name, platform, sdk, directory):
             if output(['lipo', '-archs', fat]).split() == ['arm64']: fat.replace(library)
             else:
                 run(['lipo', fat, '-thin', 'arm64', '-output', library]); fat.unlink()
-            record.write_text(json.dumps(dict(expected, binary_sha256=digest(library))) + '\n')
+            record.write_text(json.dumps(dict(expected, binary_sha256=digest(library))) + '\n', encoding='utf-8')
     return library, dict(dep, slice=expected['slice'], binary_sha256=digest(library))
 
 
@@ -163,7 +176,7 @@ def check_binary(binary, name, required_symbols=(), forbidden_symbols=()):
 # ---- AlkemyoFFmpeg ----
 
 def ffmpeg_spec():
-    return json.loads((ROOT / 'apple/pins/ffmpeg-source.json').read_text())['ffmpeg']
+    return json.loads((ROOT / 'apple/pins/ffmpeg-source.json').read_text(encoding='utf-8'))['ffmpeg']
 
 
 def ffmpeg_options(source, prefix, flags):
@@ -171,7 +184,7 @@ def ffmpeg_options(source, prefix, flags):
                '--target-os=darwin', '--enable-cross-compile', '--cc=clang', '--cxx=clang++',
                '--enable-static', '--disable-shared', '--enable-pic',
                '--disable-gpl', '--disable-nonfree', '--disable-autodetect', '--disable-doc',
-               '--disable-debug', '--disable-programs', '--disable-indevs', '--disable-outdevs',
+               '--disable-programs', '--disable-indevs', '--disable-outdevs',
                '--enable-network', '--enable-securetransport', '--enable-videotoolbox',
                '--enable-audiotoolbox', '--extra-cflags=' + flags, '--extra-ldflags=' + flags]
     rules = allowlist()['ffmpeg_configure']
@@ -201,13 +214,13 @@ def build_ffmpeg(directory, sdkpath, target):
     record = build / 'inputs.json'
     names = allowlist()['frameworks']['AlkemyoFFmpeg']['libraries']
     libraries = {n: prefix / 'lib' / ('lib' + n + '.a') for n in names}
-    if not record.exists() or json.loads(record.read_text()) != fingerprint or not all(p.exists() for p in libraries.values()):
+    if not record.exists() or json.loads(record.read_text(encoding='utf-8')) != fingerprint or not all(p.exists() for p in libraries.values()):
         env = dict(os.environ); env.pop('MACOSX_DEPLOYMENT_TARGET', None)
         for name, command in [('configure', options), ('make', ['make', '-j6']), ('install', ['make', 'install'])]:
-            with (build / (name + '.log')).open('w') as log:
+            with (build / (name + '.log')).open('w', encoding='utf-8') as log:
                 run(command, cwd=build, env=env, stdout=log, stderr=subprocess.STDOUT)
-        record.write_text(json.dumps(fingerprint, indent=2) + '\n')
-    licence = re.search(r'#define FFMPEG_LICENSE "([^"]+)"', (build / 'config.h').read_text())
+        record.write_text(json.dumps(fingerprint, indent=2) + '\n', encoding='utf-8')
+    licence = re.search(r'#define FFMPEG_LICENSE "([^"]+)"', (build / 'config.h').read_text(encoding='utf-8'))
     expected = allowlist()['frameworks']['AlkemyoFFmpeg']['licence']
     if not licence or licence.group(1) != expected:
         raise RuntimeError('FFmpeg licence is ' + (licence.group(1) if licence else 'unknown') + ', expected ' + expected)
@@ -224,22 +237,41 @@ def ffmpeg_framework(platform, sdk, directory):
     binary = framework / 'AlkemyoFFmpeg'
     command = ['xcrun', '--sdk', sdk, 'clang', '-target', target, '-isysroot', sdkpath, '-dynamiclib',
                '-Wl,-install_name,@rpath/AlkemyoFFmpeg.framework/AlkemyoFFmpeg', '-Wl,-dead_strip_dylibs', '-o', str(binary)]
+    command += link_map('AlkemyoFFmpeg', sdk)
     command += ['-Wl,-force_load,' + str(p) for p in libraries.values()]
     for name in FFMPEG_FRAMEWORKS: command += ['-framework', name]
     command += ['-lz', '-lbz2', '-liconv']
-    with (directory / 'ffmpeg-link.log').open('w') as log: run(command, stdout=log, stderr=subprocess.STDOUT)
+    with (directory / 'ffmpeg-link.log').open('w', encoding='utf-8') as log: run(command, stdout=log, stderr=subprocess.STDOUT)
     shutil.copytree(include, framework / 'Headers', dirs_exist_ok=True)
     info_plist(framework, 'AlkemyoFFmpeg', allowlist()['frameworks']['AlkemyoFFmpeg']['identifier'], platform, sdk)
     checked = check_binary(binary, 'AlkemyoFFmpeg', required_symbols=['_avformat_open_input', '_avcodec_send_packet', '_avutil_license'])
+    debug_symbols(binary, framework)
     run(['codesign', '--force', '--sign', '-', framework])
     return framework, dict(record, sdk=sdk, target=target, link_command=command, **checked)
+
+
+def debug_symbols(binary, framework):
+    """The framework's dSYM beside it, so the xcframework carries it and an archive's dSYMs folder has one for every
+    binary's UUID (App Store Connect symbolication). A one-step clang compile and link with -g already
+    wrote one next to the binary, inside the framework, from objects it then deleted: that one is moved out (dsymutil from
+    the binary's debug map would find no objects and write an empty dSYM, and a dSYM left inside the framework fails the
+    archive's strip). Otherwise dsymutil reads the binary's debug map (the static archives' objects)."""
+    dsym = framework.parent / (framework.name + '.dSYM')
+    if dsym.exists(): shutil.rmtree(dsym)
+    compiled = binary.parent / (binary.name + '.dSYM')
+    if compiled.exists(): shutil.move(compiled, dsym)
+    else: run(['xcrun', 'dsymutil', binary, '-o', dsym])
+    return dsym
 
 
 def xcframework(frameworks, destination):
     if destination.exists(): shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     command = ['xcodebuild', '-create-xcframework']
-    for framework in frameworks: command += ['-framework', str(framework)]
+    for framework in frameworks:
+        command += ['-framework', str(framework)]
+        dsym = framework.parent / (framework.name + '.dSYM')
+        if dsym.exists(): command += ['-debug-symbols', str(dsym.absolute())]
     run(command + ['-output', str(destination)])
 
 
@@ -254,7 +286,7 @@ def build_ffmpeg_xcframework(platform, work, sdks=None):
     receipt = {'schema': 2, 'framework': 'AlkemyoFFmpeg', 'builder_sha256': digest(__file__),
                'allowlist_sha256': digest(ALLOWLIST), 'ffmpeg_source': ffmpeg_spec(), 'minimum_os': PLATFORMS[platform]['minimum'],
                'slices': records}
-    (out / 'ffmpeg-build.json').write_text(json.dumps(receipt, indent=2) + '\n')
+    (out / 'ffmpeg-build.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     return receipt
 
 
@@ -263,14 +295,15 @@ def build_ffmpeg_xcframework(platform, work, sdks=None):
 MPV_COMMIT = '41f6a645068483470267271e1d09966ca3b9f413'
 MPV_SHA = '068960e89211f2adc80af03f637fa393fb5e407d3dd23592c8fe8c5490bb7ae4'
 AUDIO_PATCH_SHA = '693e8ace8057ac46c42195949777159c5aa37f9b7ce81f488758481973da9312'
-MPV_OPTIONS = ['-Dlibmpv=true', '-Dcplayer=false', '-Dgpl=false', '-Dbuildtype=release', '-Db_lundef=true', '-Dauto_features=disabled',
+MPV_OPTIONS = ['-Dlibmpv=true', '-Dcplayer=false', '-Dgpl=false', '-Dbuildtype=release', '-Ddebug=true', '-Db_lundef=true', '-Dauto_features=disabled',
                '-Dgl=enabled', '-Dplain-gl=enabled', '-Dios-gl=enabled', '-Dvideotoolbox-gl=disabled', '-Dvideotoolbox-pl=disabled',
                '-Dswift-build=disabled', '-Daudiounit=enabled', '-Davfoundation=enabled', '-Dcoreaudio=disabled', '-Dlua=disabled',
                '-Diconv=enabled', '-Duchardet=enabled', '-Dlibbluray=enabled', '-Dlcms2=enabled', '-Dzlib=enabled', '-Dlibavdevice=enabled']
 
 
 def prepare_mpv_source(work, archive):
-    """The pinned mpv source with alkemyo's mpv-side glue (libmpv_alkemyo.c, LGPL with mpv) and the tvOS audio patch."""
+    """The pinned mpv source with only the mpv-side glue (libmpv_alkemyo.c, LGPL with mpv) and the tvOS audio patch.
+    No AUTOMAIL file is copied here."""
     if digest(archive) != MPV_SHA: raise RuntimeError('mpv source checksum mismatch')
     source = work / ('mpv-' + MPV_COMMIT)
     if not source.exists():
@@ -278,10 +311,10 @@ def prepare_mpv_source(work, archive):
     for path in allowlist()['mpv_overlay']: shutil.copy2(ROOT / path, source / 'video/out' / pathlib.Path(path).name)
 
     def replace(file, before, after):
-        p = source / file; s = p.read_text()
+        p = source / file; s = p.read_text(encoding='utf-8')
         if after not in s:
             if before not in s: raise RuntimeError('mpv source changed: ' + file)
-            p.write_text(s.replace(before, after, 1))
+            p.write_text(s.replace(before, after, 1), encoding='utf-8')
     replace('video/out/vo_libmpv.c', 'const struct render_backend_fns *render_backends[] = {',
             'extern const struct render_backend_fns render_backend_alkemyo;\nconst struct render_backend_fns *render_backends[] = {\n    &render_backend_alkemyo,')
     replace('video/out/vo_libmpv.c', '    vo->hwdec_devs = ctx->hwdec_devs;',
@@ -296,13 +329,13 @@ def prepare_mpv_source(work, archive):
     if not (source / '.alkemyo-audio-patched').exists():
         run(['patch', '-p1', '-i', patch], cwd=source); (source / '.alkemyo-audio-patched').touch()
     audio = source / 'audio/out/ao_avfoundation.m'
-    if 'AlkemyoNativeMPVAVObserver' not in audio.read_text():
-        audio.write_text(re.sub(r'\bAVObserver\b', 'AlkemyoNativeMPVAVObserver', audio.read_text()))
+    if 'AlkemyoNativeMPVAVObserver' not in audio.read_text(encoding='utf-8'):
+        audio.write_text(re.sub(r'\bAVObserver\b', 'AlkemyoNativeMPVAVObserver', audio.read_text(encoding='utf-8')), encoding='utf-8')
     return source
 
 
 def ffmpeg_version(include, name):
-    header = ''.join(p.read_text() for p in (include / name).glob('version*.h')); parts = []
+    header = ''.join(p.read_text(encoding='utf-8') for p in (include / name).glob('version*.h')); parts = []
     for suffix in ['MAJOR', 'MINOR', 'MICRO']:
         match = re.search(r'#define\s+' + name.upper() + r'_VERSION_' + suffix + r'\s+(\d+)', header)
         if not match: raise RuntimeError('FFmpeg header version missing: ' + name)
@@ -334,37 +367,38 @@ def build_mpv(platform, sdk, work, archive, tools, evidence):
         if 'pkg' not in entry: continue
         link = ' '.join(str(archives[n]) for n in entry['link']) + ' ' + ' '.join(entry['system'])
         (pc / (entry['pkg'] + '.pc')).write_text('Name: ' + entry['pkg'] + '\nDescription: allow-listed static ' + entry['name'] +
-                                                 '\nVersion: ' + entry['version'] + '\nLibs: ' + link + '\nCflags: ' + cflags + '\n')
+                                                 '\nVersion: ' + entry['version'] + '\nLibs: ' + link + '\nCflags: ' + cflags + '\n', encoding='utf-8')
     for name in rules['frameworks']['AlkemyoFFmpeg']['libraries']:
         lib = 'lib' + name
         (pc / (lib + '.pc')).write_text('Name: ' + lib + '\nDescription: AlkemyoFFmpeg.framework\nVersion: ' + ffmpeg_version(ffinclude, lib) +
-                                        '\nLibs: -F' + str(linkdir) + ' -framework AlkemyoFFmpeg\nCflags: -I' + str(ffinclude) + '\n')
+                                        '\nLibs: -F' + str(linkdir) + ' -framework AlkemyoFFmpeg\nCflags: -I' + str(ffinclude) + '\n', encoding='utf-8')
     tools = tools.absolute()
     env = dict(os.environ, PYTHONPATH=str(tools), PATH=str(tools / 'bin') + ':' + os.environ['PATH'], PKG_CONFIG_LIBDIR=str(pc))
     env.pop('MACOSX_DEPLOYMENT_TARGET', None)
     flags = ['-target', target, '-isysroot', sdkpath]
     linkflags = flags + ['-framework', 'OpenGLES', '-framework', 'CoreVideo', '-framework', 'VideoToolbox', '-framework', 'CoreMedia',
-                         '-framework', 'IOSurface', '-Wl,-rpath,@loader_path/..', '-Wl,-dead_strip_dylibs']
+                         '-framework', 'IOSurface', '-Wl,-rpath,@loader_path/..', '-Wl,-dead_strip_dylibs'] + link_map('AlkemyoMPV', sdk)
     cross = work / (sdk + '.ini')
     cross.write_text("[binaries]\nc = '/usr/bin/clang'\ncpp = '/usr/bin/clang++'\nobjc = '/usr/bin/clang'\nar = '/usr/bin/ar'\nstrip = '/usr/bin/strip'\n"
                      "pkg-config = '" + str(tools / 'bin/pkg-config') + "'\n[host_machine]\nsystem = 'darwin'\ncpu_family = 'aarch64'\ncpu = 'arm64'\n"
                      "endian = 'little'\n[properties]\nneeds_exe_wrapper = true\n[built-in options]\nc_args = " + repr(flags) +
-                     "\nobjc_args = " + repr(flags) + "\nc_link_args = " + repr(linkflags) + "\nobjc_link_args = " + repr(linkflags) + "\n")
+                     "\nobjc_args = " + repr(flags) + "\nc_link_args = " + repr(linkflags) + "\nobjc_link_args = " + repr(linkflags) + "\n", encoding='utf-8')
     missing = [o for o in rules['mpv_options']['required'] if o not in MPV_OPTIONS]
     if missing: raise RuntimeError('mpv options break the allow-list: ' + str(missing))
     evidence.mkdir(parents=True, exist_ok=True)
-    fingerprint = {'options': MPV_OPTIONS, 'cross': cross.read_text(), 'pc': {p.name: p.read_text() for p in sorted(pc.glob('*.pc'))}}
+    fingerprint = {'options': MPV_OPTIONS, 'cross': cross.read_text(encoding='utf-8'), 'pc': {p.name: p.read_text(encoding='utf-8') for p in sorted(pc.glob('*.pc'))}}
     # A new meson directory per input set, so a changed recipe never reuses a stale configure (and nothing is deleted).
     build = work / (sdk + '-' + hashlib.sha256(json.dumps(fingerprint, sort_keys=True).encode()).hexdigest()[:12])
     if not (build / 'build.ninja').exists():
-        with (evidence / (sdk + '-configure.log')).open('w') as out:
+        with (evidence / (sdk + '-configure.log')).open('w', encoding='utf-8') as out:
             run([tools / 'bin/meson', 'setup', build, source, '--cross-file', cross] + MPV_OPTIONS, env=env, stdout=out, stderr=subprocess.STDOUT)
-    with (evidence / (sdk + '-compile.log')).open('w') as out:
+    with (evidence / (sdk + '-compile.log')).open('w', encoding='utf-8') as out:
         run([tools / 'bin/ninja', '-C', build, '-j2'], env=env, stdout=out, stderr=subprocess.STDOUT)
     binary = next(build.glob('libAlkemyoMPV.*.dylib'))
     framework = work / (sdk + '-framework') / 'AlkemyoMPV.framework'; framework.mkdir(parents=True, exist_ok=True)
     destination = framework / 'AlkemyoMPV'; shutil.copy2(binary, destination)
     run(['install_name_tool', '-id', '@rpath/AlkemyoMPV.framework/AlkemyoMPV', destination])
+    debug_symbols(destination, framework)
     info_plist(framework, 'AlkemyoMPV', rules['frameworks']['AlkemyoMPV']['identifier'], platform, sdk)
     checked = check_binary(destination, 'AlkemyoMPV', required_symbols=['_mpv_create', '_mpv_render_context_create'],
                            forbidden_symbols=['_alkemyo_media_abi', '_alkemyo_media_open', '_alkemyo_subtitle_decode', '_avformat_open_input'])
@@ -373,7 +407,42 @@ def build_mpv(platform, sdk, work, archive, tools, evidence):
                'overlay_sha256': {p: digest(ROOT / p) for p in rules['mpv_overlay']}, 'audio_patch_sha256': AUDIO_PATCH_SHA,
                'ffmpeg_sha256': digest(ffmpeg / 'AlkemyoFFmpeg'), 'static_libraries': records, 'binary_sha256': checked['sha256'],
                'load_commands': checked['load_commands'], 'source_compiled': True, 'runtime': 'pending', 'physical_device': 'pending'}
-    (evidence / (sdk + '-receipt.json')).write_text(json.dumps(receipt, indent=2) + '\n')
+    (evidence / (sdk + '-receipt.json')).write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     return framework, receipt
 
 
+# ---- AlkemyoASS ----
+
+def build_ass(platform, work, sdks=None):
+    """AlkemyoASS.xcframework: libass and its text libraries as one replaceable library, with no alkemyo code in it (as AlkemyoFFmpeg
+    is for FFmpeg), so FriBidi's LGPL stays satisfied and AUTOMAIL draws full ASS/SSA without depending on mpv."""
+    work = work.absolute(); rules = allowlist()['frameworks']['AlkemyoASS']
+    frameworks, records = [], []
+    for sdk, slice_info in PLATFORMS[platform]['sdks'].items():
+        if sdks and sdk not in sdks: continue
+        directory = work / 'ass' / sdk; directory.mkdir(parents=True, exist_ok=True)
+        archives, pinned_records = [], []
+        for name in rules['archives']:
+            library, record = extract_static(name, platform, sdk, directory / 'lib'); archives.append(library); pinned_records.append(record)
+        framework = directory / 'AlkemyoASS.framework'; framework.mkdir(exist_ok=True)
+        binary = framework / 'AlkemyoASS'; sdkpath = sdk_path(sdk)
+        (directory / 'empty.c').write_text('', encoding='utf-8')
+        command = ['xcrun', '--sdk', sdk, 'clang', '-target', slice_info['target'], '-isysroot', sdkpath, '-dynamiclib',
+                   '-Wl,-install_name,@rpath/AlkemyoASS.framework/AlkemyoASS', '-Wl,-exported_symbol,_ass_*', '-g', '-o', str(binary), str(directory / 'empty.c')]
+        command += link_map('AlkemyoASS', sdk) + ['-Wl,-force_load,' + str(p) for p in archives]
+        command += ['-lc++', '-lz', '-lbz2', '-liconv', '-framework', 'CoreText', '-framework', 'CoreGraphics', '-framework', 'CoreFoundation']
+        with (directory / 'link.log').open('w', encoding='utf-8') as log: run(command, stdout=log, stderr=subprocess.STDOUT)
+        extract_headers('Libass', platform, sdk, framework / 'Headers', '')
+        info_plist(framework, 'AlkemyoASS', rules['identifier'], platform, sdk)
+        checked = check_binary(binary, 'AlkemyoASS', required_symbols=['_ass_library_init', '_ass_render_frame', '_ass_read_memory'],
+                               forbidden_symbols=['_mpv_create', '_avformat_open_input'])
+        debug_symbols(binary, framework)
+        run(['codesign', '--force', '--sign', '-', framework])
+        frameworks.append(framework)
+        records.append({'sdk': sdk, 'target': slice_info['target'], 'link_command': command, 'archives': pinned_records, **checked})
+    out = ROOT / PLATFORMS[platform]['output']
+    xcframework(frameworks, out / 'AlkemyoASS.xcframework')
+    receipt = {'schema': 1, 'framework': 'AlkemyoASS', 'licence': rules['licence'], 'builder_sha256': digest(__file__),
+               'allowlist_sha256': digest(ALLOWLIST), 'slices': records}
+    (out / 'ass-build.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+    return receipt

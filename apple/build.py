@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build AlkemyoFFmpeg and AlkemyoMPV for iPhone and iPad (ios) or Apple TV (tvos) from the pinned sources.
+"""Build AlkemyoFFmpeg, AlkemyoMPV and AlkemyoASS for iPhone and iPad (ios) or Apple TV (tvos) from the pinned sources.
 
     python3 apple/build.py tvos --work ~/alkemyo-work --tools ~/alkemyo-tools
 
-Writes output/<platform>/AlkemyoFFmpeg.xcframework, AlkemyoMPV.xcframework and their build receipts
-(ffmpeg-build.json, mpv-build.json). --tools is a folder with bin/meson, bin/ninja and bin/pkg-config
+Writes output/<platform>/AlkemyoFFmpeg.xcframework, AlkemyoMPV.xcframework, AlkemyoASS.xcframework and their build
+receipts (ffmpeg-build.json, mpv-build.json, ass-build.json). --tools is a folder with bin/meson, bin/ninja and bin/pkg-config
 (meson 1.4.2, ninja 1.13.0, pkgconf 2.5.1). The mpv source archive is downloaded from GitHub and checked
 against apple/pins/mpv-source-pin.json unless --archive gives a local copy. No signing. See RELINK.md.
 """
@@ -46,7 +46,8 @@ def main():
         frameworks.append(framework); slices.append(receipt)
     apple_player.xcframework(frameworks, out / 'AlkemyoMPV.xcframework')
     (out / 'mpv-build.json').write_text(json.dumps({'schema': 2, 'framework': 'AlkemyoMPV', 'slices': slices}, indent=2) + '\n')
-    print(out / 'AlkemyoFFmpeg.xcframework'); print(out / 'AlkemyoMPV.xcframework')
+    apple_player.build_ass(platform, work, sdks)
+    print(out / 'AlkemyoFFmpeg.xcframework'); print(out / 'AlkemyoMPV.xcframework'); print(out / 'AlkemyoASS.xcframework')
 
 
 if __name__ == '__main__':
